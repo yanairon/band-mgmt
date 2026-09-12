@@ -1,0 +1,58 @@
+# Something - The Beatles (matches Roi's hand-formatted chart, "Something v3").
+title: Something
+artist: The Beatles
+key: c major
+time: 4/4
+instrument: Guitar
+
+sections:
+  - label: "בית 1"
+    bars:
+      - { chords: F }
+      - { chords: Eb }
+      - { chords: G }
+      - { chords: C }
+      - { chords: Cmaj7 }
+      - { chords: C7 }
+      - { chords: F, break: true }
+      - { chords: D7 }
+      - { chords: G }
+      - { chords: Am }
+      - { chords: "Am/G#" }
+      - { chords: "Am/G" }
+      - { chords: D7 }
+      - { chords: F }
+      - { chords: Eb }
+      - { chords: G, break: true }
+  - label: "בית 2"
+    bars:
+      - { chords: C }
+      - { chords: Cmaj7 }
+      - { chords: C7 }
+      - { chords: F }
+      - { chords: D7 }
+      - { chords: G }
+      - { chords: Am }
+      - { chords: "Am/G#", break: true }
+      - { chords: "Am/G" }
+      - { chords: D7 }
+      - { chords: F }
+      - { chords: Eb }
+      - { chords: G }
+      - { chords: A, break: true }
+  - label: "גשר"
+    bars:
+      - { chords: A }
+      - { chords: "A/G#" }
+      - { chords: "F#m" }
+      - { chords: "F#m/E" }
+      - { chords: D }
+      - { chords: G }
+      - { chords: A, break: true }
+      - { chords: A }
+      - { chords: "A/G#" }
+      - { chords: "F#m" }
+      - { chords: "F#m/E" }
+      - { chords: D }
+      - { chords: G }
+      - { chords: C, barline: "|." }
