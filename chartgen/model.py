@@ -95,6 +95,15 @@ class Section:
     label: str | None
     boxed: bool
     bars: list[Bar] = field(default_factory=list)
+    repeat: int = 0                    # >1 wraps bars in \repeat volta N
+    endings: list[list[Bar]] = field(default_factory=list)  # volta alternatives
+    roadmap_after: list[str] = field(default_factory=list)  # centered boxes after section
+    final_barline: bool = False        # append \bar "|."
+
+    @property
+    def written_bars(self) -> int:
+        """Bars as printed once (body + all volta endings). Drives bar numbering."""
+        return len(self.bars) + sum(len(e) for e in self.endings)
 
 
 @dataclass
@@ -112,6 +121,10 @@ class Chart:
     @property
     def bar_length(self) -> Fraction:
         return Fraction(self.time_num, self.time_den)
+
+    def start_bar(self, index: int) -> int:
+        """1-based written-bar number at which sections[index] starts."""
+        return 1 + sum(s.written_bars for s in self.sections[:index])
 
 
 def _parse_bar(raw) -> Bar:
@@ -150,10 +163,16 @@ def parse_chart(data: dict) -> Chart:
     for raw_sec in data.get("sections", []):
         if isinstance(raw_sec, str):
             raw_sec = {"label": raw_sec, "bars": []}
+        endings = [[_parse_bar(b) for b in ending]
+                   for ending in raw_sec.get("endings", [])]
         sections.append(Section(
             label=raw_sec.get("label"),
             boxed=bool(raw_sec.get("boxed", True)),
             bars=[_parse_bar(b) for b in raw_sec.get("bars", [])],
+            repeat=int(raw_sec.get("repeat", 0) or 0),
+            endings=endings,
+            roadmap_after=[str(t) for t in raw_sec.get("roadmap_after", [])],
+            final_barline=bool(raw_sec.get("final_barline", False)),
         ))
     if not sections:
         raise ValueError("chart has no sections")

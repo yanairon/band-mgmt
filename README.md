@@ -21,12 +21,14 @@ The flow for a new chart:
    [LilyPond](https://lilypond.org) on the PATH (or pass `--lilypond PATH`).
    Pass `--ly` to also keep the generated `.ly` source.
 
-The output matches Roi's charts: A4, 18pt staff, thin staff lines, title
-centered with the artist on the right, a "Guitar" staff with treble clef and
-4/4 on the first system, long thin slash notation (one slash per beat), upright
-roman chord names inline above the staff, boxed Hebrew rehearsal marks at
-section starts, bar numbers at the start of every system, and a heavy final
-barline.
+The output matches Roi's charts: A4, 18pt staff, thin staff lines, bold
+centered title with a bold artist on the right, a "Guitar" staff with treble
+clef and 4/4 on the first system only, stemless mid-staff slash notation (one
+slash per beat, geometry measured from his engraved charts), upright roman
+chord names inline above the staff, boxed Hebrew rehearsal marks at section
+starts with the start bar folded in, repeat barlines with light volta 1./2.
+brackets, centered boxed roadmap lines between sections, bar numbers at the
+start of every system, full-width systems, and a heavy final barline.
 
 ## Input format
 
@@ -47,6 +49,30 @@ sections:
       - { chords: G, break: true }        # force a line break after this bar
       - { chords: Am, barline: "|." }     # explicit barline after this bar
 ```
+
+Each section renders as its own score, so sections start on a fresh system and
+short sections still stretch to the full text width. Sections after the first
+hide the time signature, and their start bar number is folded under the boxed
+label (bar numbers are computed from the written bar counts - add or remove
+bars and every later number follows automatically).
+
+Sections can carry Roi's repeat idiom:
+
+```yaml
+  - label: "בית"
+    repeat: 2          # |: ... :| around the body bars
+    bars: [ ... ]      # written once
+    endings:           # volta alternatives (1. / 2.), each a list of bars
+      - [F, Eb, G]
+      - [F, Eb, G, A]
+    roadmap_after:     # centered boxed roadmap lines printed after this section
+      - "בית 3 - סולו"
+      - "בית 4"
+    final_barline: true   # heavy |. at the very end of the chart
+```
+
+Bar numbering counts written bars (body once + every ending), which is how
+Roi numbers his charts.
 
 Chord shorthand: `F`, `Am`, `C7`, `Cmaj7`, `F#m7b5`, `Ddim7`, `Gsus4`,
 `Am/G#` (slash chords), `N.C.` (no chord, whole-bar rest). Anything else can

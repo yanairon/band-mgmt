@@ -1,4 +1,5 @@
-# Something - The Beatles (matches Roi's hand-formatted chart, "Something v3").
+# Something - The Beatles (Roi Peled house style; content verified with Yanai).
+# Each unique section is written once; repeats and volta endings compress it.
 title: Something
 artist: The Beatles
 key: c major
@@ -6,25 +7,17 @@ time: 4/4
 instrument: Guitar
 
 sections:
-  - label: "בית 1"
+  # Intro riff, 4 written bars (bars 1-4)
+  - label: "פתיחה"
     bars:
       - { chords: F }
       - { chords: Eb }
       - { chords: G }
-      - { chords: C }
-      - { chords: Cmaj7 }
-      - { chords: C7 }
-      - { chords: F, break: true }
-      - { chords: D7 }
-      - { chords: G }
-      - { chords: Am }
-      - { chords: "Am/G#" }
-      - { chords: "Am/G" }
-      - { chords: D7 }
-      - { chords: F }
-      - { chords: Eb }
-      - { chords: G, break: true }
-  - label: "בית 2"
+      - { chords: A }
+
+  # Verse, played twice with different endings (bars 5-21 written)
+  - label: "בית"
+    repeat: 2
     bars:
       - { chords: C }
       - { chords: Cmaj7 }
@@ -36,23 +29,32 @@ sections:
       - { chords: "Am/G#", break: true }
       - { chords: "Am/G" }
       - { chords: D7 }
+    endings:
+      - [F, Eb, G]
+      - [F, Eb, G, A]
+
+  # Bridge, two chords per bar, volta endings (bars 22-26 written)
+  - label: "גשר"
+    repeat: 2
+    bars:
+      - [A, "A/G#"]
+      - ["F#m", "F#m/E"]
+      - [D, G]
+    endings:
+      - [A]
+      - [C]
+    roadmap_after:
+      - "בית 3 - סולו"
+      - "בית 4"
+
+  # Outro riff, volta endings (bars 27-31 written)
+  - label: "סיום"
+    repeat: 2
+    bars:
       - { chords: F }
       - { chords: Eb }
       - { chords: G }
-      - { chords: A, break: true }
-  - label: "גשר"
-    bars:
-      - { chords: A }
-      - { chords: "A/G#" }
-      - { chords: "F#m" }
-      - { chords: "F#m/E" }
-      - { chords: D }
-      - { chords: G }
-      - { chords: A, break: true }
-      - { chords: A }
-      - { chords: "A/G#" }
-      - { chords: "F#m" }
-      - { chords: "F#m/E" }
-      - { chords: D }
-      - { chords: G }
-      - { chords: C, barline: "|." }
+    endings:
+      - [A]
+      - [C]
+    final_barline: true
