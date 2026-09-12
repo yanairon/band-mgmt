@@ -1,114 +1,138 @@
-"""Render a Chart model to LilyPond source using the roi.ily style include."""
+"""Render a Chart model to LilyPond source using the roi.ily style include.
+
+Emits one \\score per notated section (Roi's idiom: each unique section is
+written once, repeats/volta endings compress it, roadmap boxes sit between
+sections). Bar numbers are seeded per score and folded into the section
+label markup because LilyPond suppresses bar numbers at score starts.
+"""
 from __future__ import annotations
 
-from fractions import Fraction
-
-from .model import Chart, _DURATIONS, chord_token, _duration_token, _split_bar
+from .model import Bar, Chart, Section, chord_token, _duration_token, _split_bar
 
 
 def _ly_string(s: str) -> str:
     return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
-def _chord_line(chart: Chart) -> str:
-    """ChordNames voice: expanded chords, one bar of music per line,
-    explicit breaks and barlines honored; auto-break every bars_per_system
-    when the chart uses no explicit breaks."""
-    any_explicit = any(b.break_after for s in chart.sections for b in s.bars)
-    out = ["  \\set majorSevenSymbol = \\markup \\raise #-0.75 { \"maj7\" }"]
-    pos = 0
-    for sec in chart.sections:
-        for bar in sec.bars:
-            tokens = bar.chords
-            if len(tokens) == 1 and tokens[0].strip() in ("N.C.", "NC", "nc"):
-                out.append("  r" + _duration_token(chart.bar_length))
-            else:
-                durs = _split_bar(chart.bar_length, len(tokens))
-                out.append("  " + " ".join(
-                    chord_token(t, d) for t, d in zip(tokens, durs)))
-            if bar.barline_after:
-                out.append(f"  \\bar {_ly_string(bar.barline_after)}")
-            pos += 1
-            if bar.break_after or (not any_explicit and pos % chart.bars_per_system == 0):
-                out.append("  \\break")
+def _bar_chords(chart: Chart, bar: Bar) -> str:
+    tokens = bar.chords
+    if len(tokens) == 1 and tokens[0].strip() in ("N.C.", "NC", "nc"):
+        return "r" + _duration_token(chart.bar_length)
+    durs = _split_bar(chart.bar_length, len(tokens))
+    return " ".join(chord_token(t, d) for t, d in zip(tokens, durs))
+
+
+def _chord_line(chart: Chart, sec: Section) -> str:
+    """ChordNames voice for one section: body bars then all endings, linear,
+    matching the written layout of the volta structure."""
+    bars = list(sec.bars) + [b for ending in sec.endings for b in ending]
+    return " ".join(_bar_chords(chart, b) for b in bars)
+
+
+def _slash_unit(chart: Chart) -> str:
+    if chart.time_den == 4:
+        return "b'4 " * chart.time_num
+    if chart.time_den == 8:
+        return "b'8 " * chart.time_num
+    raise ValueError(f"unsupported time denominator {chart.time_den} for slashes")
+
+
+def _slash_bars(chart: Chart, bars: list[Bar]) -> str:
+    """One slash per beat for each bar; honors per-bar breaks and barlines."""
+    unit = _slash_unit(chart).strip()
+    out = []
+    for bar in bars:
+        out.append("    " + unit)
+        if bar.barline_after:
+            out.append(f"    \\bar {_ly_string(bar.barline_after)}")
+        if bar.break_after:
+            out.append("    \\break")
     return "\n".join(out)
 
 
-def _marks(chart: Chart) -> str:
-    """RehearsalMark voice: boxed Hebrew (or plain) section labels at section
-    starts, with spacer skips computed from the section bar counts."""
-    skip = _duration_token(chart.bar_length)
-    lines = []
-    for sec in chart.sections:
-        if not sec.bars:
-            continue
-        if sec.label:
-            label = _ly_string(sec.label)
-            if sec.boxed:
-                lines.append("  \\mark \\markup { \\override #'(box-padding . 0.5) "
-                             f"\\box {label} }}")
-            else:
-                lines.append(f"  \\mark \\markup \\bold {label}")
-        lines.append(f"  s{skip}*{len(sec.bars)}")
+def _staff_voice(chart: Chart, sec: Section, index: int, start_bar: int) -> str:
+    first = index == 0
+    lines = ["      \\clef treble",
+             f"      \\key {chart.key_root} \\{chart.key_mode}"]
+    if first:
+        lines.append(f"      \\numericTimeSignature\n      \\time {chart.time_num}/{chart.time_den}")
+    else:
+        lines.append("      \\override Staff.TimeSignature.stencil = ##f")
+    lines.append("      \\improvisationOn")
+    lines.append("      \\override NoteHead.stencil = \\roiSlashStencil")
+    if not first:
+        lines.append(f"      \\set Score.currentBarNumber = #{start_bar}")
+    if sec.label:
+        if first or start_bar <= 1:
+            lines.append(f"      \\boxMark {_ly_string(sec.label)}")
+        else:
+            lines.append(f"      \\boxMarkNum {_ly_string(sec.label)} {_ly_string(str(start_bar))}")
+    if sec.repeat and sec.repeat > 1:
+        lines.append('      \\bar ".|:"')
+        lines.append(f"      \\repeat volta {sec.repeat} {{")
+        lines.append(_slash_bars(chart, sec.bars))
+        lines.append("      }")
+        if sec.endings:
+            lines.append("      \\alternative {")
+            for ending in sec.endings:
+                lines.append("        {")
+                lines.append(_slash_bars(chart, ending))
+                lines.append("        }")
+            lines.append("      }")
+    else:
+        lines.append(_slash_bars(chart, sec.bars))
+        for ending in sec.endings:  # endings without repeat: just append
+            lines.append(_slash_bars(chart, ending))
+    if sec.final_barline:
+        lines.append('      \\bar "|."')
     return "\n".join(lines)
 
 
-def _slashes(chart: Chart) -> str:
-    """Slash voice: one slash per beat (denominator 4) or per eighth (denom 8)."""
-    total = sum(len(s.bars) for s in chart.sections)
-    if chart.time_den == 4:
-        unit = "b4 " * chart.time_num
-    elif chart.time_den == 8:
-        unit = "b8 " * chart.time_num
-    else:
-        raise ValueError(f"unsupported time denominator {chart.time_den} for slashes")
-    return f"  \\repeat unfold {total} {{ {unit.strip()} }}"
+def _score_block(chart: Chart, sec: Section, index: int) -> str:
+    start_bar = chart.start_bar(index)
+    first = index == 0
+    instrument = (f'      \\set Staff.instrumentName = {_ly_string(chart.instrument)}\n'
+                  if first else "")
+    layout_bits = ["    \\roiLayout"]
+    if not first:
+        layout_bits.append("    indent = 0")
+    if sec.written_bars <= chart.bars_per_system:
+        # Single-system scores do not justify on spacing springs alone; a large
+        # common-shortest-duration makes the natural spacing wide so LilyPond
+        # compresses to the full text width instead.
+        layout_bits.append("    \\context { \\Score \\override "
+                           "SpacingSpanner.common-shortest-duration = #(ly:make-moment 4/1) }")
+    return f"""\\score {{
+  <<
+    \\new ChordNames {{ \\majSeven \\chordmode {{
+      {_chord_line(chart, sec)}
+    }} }}
+    \\new Staff {{
+{instrument}      \\new Voice {{
+{_staff_voice(chart, sec, index, start_bar)}
+      }}
+    }}
+  >>
+  \\layout {{
+{chr(10).join(layout_bits)}
+  }}
+}}"""
 
 
 def render_ly(chart: Chart, style_include: str = "roi.ily") -> str:
-    return f"""% Generated by chartgen. Do not edit by hand - edit the YAML input instead.
+    blocks = [f"""% Generated by chartgen. Do not edit by hand - edit the YAML input instead.
 \\version "2.24.4"
 \\include "{style_include}"
 
-\\paper {{
-  #(set-paper-size "a4")
-  tagline = ##f
-  system-system-spacing.basic-distance = #17
-  system-system-spacing.minimum-distance = #10
-}}
+\\roiPaper
+
 \\header {{
   title = {_ly_string(chart.title)}
   composer = {_ly_string(chart.artist)}
 }}
-
-chordLine = \\chordmode {{
-{_chord_line(chart)}
-}}
-
-marks = {{
-{_marks(chart)}
-}}
-
-slashes = {{
-  \\key {chart.key_root} \\{chart.key_mode}
-  \\numericTimeSignature
-  \\time {chart.time_num}/{chart.time_den}
-  \\improvisationOn
-  \\override NoteHead.stencil = \\roiSlashStencil
-{_slashes(chart)}
-}}
-
-\\score {{
-  <<
-    \\new ChordNames {{ \\chordLine }}
-    \\new Staff {{
-      \\set Staff.instrumentName = {_ly_string(chart.instrument)}
-      <<
-        \\marks
-        \\new Voice {{ \\clef treble \\slashes }}
-      >>
-    }}
-  >>
-  \\layout {{ \\roiLayout }}
-}}
-"""
+"""]
+    for i, sec in enumerate(chart.sections):
+        blocks.append(_score_block(chart, sec, i))
+        for text in sec.roadmap_after:
+            blocks.append(f"\\roadmapBox {_ly_string(text)}")
+    return "\n\n".join(blocks) + "\n"
