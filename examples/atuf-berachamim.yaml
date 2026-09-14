@@ -1,0 +1,34 @@
+# עטוף ברחמים - Rita. Band shorthand, preserving the handwritten chart.
+title: "עטוף ברחמים"
+artist: "ריטה"
+key: b minor
+time: 4/4
+instrument: Guitar
+bars_per_system: 8
+sections:
+  - label: "בית"
+    bars:
+      - Bm
+      - Em
+      - "Em/F#"
+      - G
+      - A
+      - D
+      - Bm
+      - "Bm/F#"
+      - G
+      - A
+      - D
+      - Em
+      - G
+      - A
+      - D
+  - label: "פזמון"
+    bars:
+      - Em
+      - D
+      - G
+      - Em
+      - F#m
+      - Bm
+    final_barline: true
