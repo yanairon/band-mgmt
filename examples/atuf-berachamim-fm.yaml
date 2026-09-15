@@ -1,0 +1,35 @@
+# עטוף ברחמים - Rita, down 3 tones from the delivered B-minor chart. Band shorthand,
+# preserving the handwritten chart's structure.
+title: "עטוף ברחמים"
+artist: "ריטה"
+key: f minor
+time: 4/4
+instrument: Guitar
+bars_per_system: 8
+sections:
+  - label: "בית"
+    bars:
+      - Fm
+      - Bbm
+      - "Bbm/F"
+      - Db
+      - Eb
+      - Ab
+      - Fm
+      - "Fm/C"
+      - Db
+      - Eb
+      - Ab
+      - Bbm
+      - Db
+      - Eb
+      - Ab
+  - label: "פזמון"
+    bars:
+      - Bbm
+      - Ab
+      - Db
+      - Bbm
+      - Cm
+      - Fm
+    final_barline: true

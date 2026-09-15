@@ -1,0 +1,28 @@
+# Sail Away - David Gray. Capo 3 guitar shapes, condensed to the original harmonic rhythm.
+title: "Sail Away"
+artist: "David Gray"
+key: a minor
+time: 4/4
+instrument: "Guitar - capo 3"
+bars_per_system: 4
+sections:
+  - label: "פזמון"
+    bars:
+      - Am
+      - Em
+      - Am
+      - [F, Dm]
+      - [Am, C]
+      - [F, Dm]
+      - [F, G7, Dm]
+  - label: "בית"
+    bars:
+      - [C, Em, Em7]
+      - [C, Em, Em7]
+      - [C, Em, Em7]
+      - [Am, G]
+      - [F, Dm]
+    roadmap_after:
+      - "פזמון"
+      - "בית 3 - פזמון x4"
+    final_barline: true
