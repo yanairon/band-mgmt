@@ -1,0 +1,29 @@
+# Sail Away - David Gray, written in C minor (no capo). Transposed up 3 semitones
+# from the Am capo-3 chart; structure identical to the delivered Am version.
+title: "Sail Away"
+artist: "David Gray"
+key: c minor
+time: 4/4
+instrument: Guitar
+bars_per_system: 4
+sections:
+  - label: "פזמון"
+    bars:
+      - Cm
+      - Gm
+      - Cm
+      - [Ab, Fm]
+      - [Cm, Eb]
+      - [Ab, Fm]
+      - [Ab, Bb7, Fm]
+  - label: "בית"
+    bars:
+      - [Eb, Gm, Gm7]
+      - [Eb, Gm, Gm7]
+      - [Eb, Gm, Gm7]
+      - [Cm, Bb]
+      - [Ab, Fm]
+    roadmap_after:
+      - "פזמון"
+      - "בית 3 - פזמון x4"
+    final_barline: true
