@@ -1,6 +1,6 @@
 PyYAML>=6.0.3
 # verovio backend (default): pure-pip, no system binaries
-verovio>=4.3
+verovio>=6.3.0
 cairosvg>=2.9.1
 pypdf>=4.0
 pillow>=12.3.0
